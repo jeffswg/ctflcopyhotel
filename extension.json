@@ -1,0 +1,6 @@
+{
+  "id": "copyhotelv1",
+  "name": "copyhotelv1",
+  "srcdoc": "./build/index.html",
+  "sidebar": true
+}
