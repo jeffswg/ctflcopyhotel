@@ -2,5 +2,15 @@
   "id": "copyhotelv1",
   "name": "copyhotelv1",
   "srcdoc": "./build/index.html",
-  "sidebar": true
+  "sidebar": true,
+  "parameters":{
+    "instance":[
+      {
+        "id": "serviceForCopyURL",
+        "type": "Symbol",
+        "name": "URL of service for copying data",
+        "description": "URL of service for copying data"
+      }
+    ]
+  }
 }

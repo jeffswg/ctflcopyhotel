@@ -20,14 +20,16 @@ export class DialogExtension extends React.Component {
   constructor(props)
   {
     super(props);
-    this.state={hotelCodes:[],currentHotelCode:'',currentParameter:''};
+    this.state={hotelCodes:[],currentHotelCode:'',currentParameter:'',isCopying:false};
     this.refFromHotelList=React.createRef();
     this.refResultStatus=React.createRef();
     this.refTimer=React.createRef();
+    this.serviceURL='';
   }
   componentDidMount(){
       const thisHotelCode=this.props.sdk.parameters.invocation['currentHotelCode'];
-      //const thisParam=this.props.sdk.parameters.invocation['currentTestParam'];
+      this.serviceURL=this.props.sdk.parameters.invocation['serviceURL'];
+      console.log(this.serviceURL);
 
       this.props.sdk.space.getEntries({
         content_type: 'hotelInfo',
@@ -36,7 +38,7 @@ export class DialogExtension extends React.Component {
       }).then((response)=>{console.log('data: ' + response.items[0].fields.hotelCode['en-CA'] );
         let theHCodes=[];
         response.items.map((item)=>theHCodes.push(item.fields.hotelCode['en-CA']));
-        this.setState({hotelCodes:[...this.state.hotelCodes,...theHCodes],currentHotelCode:thisHotelCode,currentParameter:'default'});
+        this.setState({hotelCodes:[...this.state.hotelCodes,...theHCodes],currentHotelCode:thisHotelCode,currentParameter:'default',isCopying:false});
         this.refFromHotelList.current.value="Please Select Copy From Hotel";
       })
       .catch((err)=>{
@@ -46,11 +48,13 @@ export class DialogExtension extends React.Component {
     };
   handleFieldSelectChange=(e)=>{
       console.log('Selection Change');
+      
       const selectedCode=this.refFromHotelList.current.value;
       this.setState({
         hotelCodes: this.state.hotelCodes,
         currentHotelCode:this.state.currentHotelCode,
-        currentParameter:selectedCode
+        currentParameter:selectedCode,
+        isCopying:this.state.isCopying
       });
       this.refFromHotelList.current.value=selectedCode
       //this.refResultStatus.current.src=waiting
@@ -84,6 +88,7 @@ export class DialogExtension extends React.Component {
         <Button
           testId="try-copy-hotel"
           buttonType="muted"
+          disabled={this.state.isCopying}
           onClick={() => {
             this.refResultStatus.current.src=waiting;
             this.refTimer.current.src=timeranimate;
@@ -92,7 +97,14 @@ export class DialogExtension extends React.Component {
                   'SWG-Token': "abcde"
               }
             };
-            fetch("https://services.shapefutureconsulting.ca/api/GetHotelData?FromHotelCode=" + this.refFromHotelList.current.value + "&ToHotelCode=" + this.state.currentHotelCode
+            this.setState({
+              hotelCodes: this.state.hotelCodes,
+              currentHotelCode:this.state.currentHotelCode,
+              currentParameter:this.state.currentParameter,
+              isCopying:true
+            });
+            //fetch("https://services.shapefutureconsulting.ca/api/GetHotelData?FromHotelCode=" + this.refFromHotelList.current.value + "&ToHotelCode=" + this.state.currentHotelCode
+            fetch(this.serviceURL +"/" + this.refFromHotelList.current.value + "/" + this.state.currentHotelCode
             ,fetchConfig)
             .then((res)=>res.json())
             .then((rsp)=>{
@@ -116,7 +128,7 @@ export class SidebarExtension extends React.Component {
   constructor(props)
   {
     super(props);
-    this.state={hotelCode:'',hotelIsPublished:true};
+    this.state={hotelCode:'',serviceURL:'',hotelIsPublished:true};
   }
 
   componentDidMount() {
@@ -126,7 +138,7 @@ export class SidebarExtension extends React.Component {
     const hotelHasFacility=(this.props.sdk.entry.fields['facilitiesAndServices'].getValue() !=null);
     const hotelHasPromos=(this.props.sdk.entry.fields['promotionsAndOffers'].getValue() !=null);
     const hotelIsDraft=this.props.sdk.entry.getSys().publishedAt===undefined;
-    this.setState({hotelCode:hotelCode,shouldDisable:!hotelIsDraft || hotelHasDining || hotelHasFacility || hotelHasPromos});
+    this.setState({hotelCode:hotelCode,serviceURL:this.props.sdk.parameters.instance.serviceForCopyURL,shouldDisable:!hotelIsDraft || hotelHasDining || hotelHasFacility || hotelHasPromos});
     // const fetchConfig={
     //   headers:{
     //       'SWG-Token': "fg365gs9sfdciy"
@@ -145,7 +157,7 @@ export class SidebarExtension extends React.Component {
       width: 800,
       title: 'Copy Data for Hotel ' + this.state.hotelCode ,
       minHeight:200,
-      parameters:{currentHotelCode:this.state.hotelCode,currentTestParam:'defaultparam'}
+      parameters:{currentHotelCode:this.state.hotelCode,serviceURL:this.state.serviceURL}
     });
     console.log(result);
   };
