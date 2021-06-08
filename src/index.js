@@ -111,7 +111,7 @@ export class DialogExtension extends React.Component {
               console.log(rsp);
               this.refResultStatus.current.src=donecopy;
               this.refTimer.current.src=timerzero;
-            }).catch((err)=>{this.refResultStatus.current.src=errorcopy;console.log(err)});
+            }).catch((err)=>{this.refResultStatus.current.src=errorcopy;this.refTimer.current.src=timerzero;console.log(err)});
             
           }}>
           Try copy
